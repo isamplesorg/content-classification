@@ -198,7 +198,7 @@ def main():
 
     args = parser.parse_args()
 
-    df = pd.read_csv("data/GSO_updated_SESAR_dataset.csv")
+    df = pd.read_csv("data/SESAR_dataset.csv")
     df = df.fillna("")
     #remove rows that do not have a material type
     df = df[df["description_material"]!=""]

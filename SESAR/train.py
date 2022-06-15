@@ -60,7 +60,7 @@ def preprocess(dataframe, selected_material_type=None):
   le.fit(new_df.description_material)
 
   new_df['description_material'] = le.transform(new_df.description_material)
-  print(selected_material_type, " number of labels: ", len(le.classes_))
+  print(" number of labels: ", len(le.classes_))
   #split data to training df, val df, test df
   train_df, dev_df, test_df =  np.split(new_df.sample(frac=1, random_state=42),[int(.6*len(new_df)), int(.8*len(new_df))])
  

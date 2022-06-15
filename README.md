@@ -37,9 +37,11 @@ Running this file expects the following arguments:
 * `--label_type` ( if OPENCONTEXT dataset is used for training) : The type of label  (material / sample)
 <br/>
 For example, to train a model that classifies the material type of the OPENCONTEXT dataset 
+
 ```
 python3 OPENCONTEXT/train.py --nb_epochs 3 --batch_size 32 --lr_rate 3e-5 --label_type "material" --train_mode "custom" --output_dir $OUTPUT_DIR 
 ```
+
 <br/>
 
 ## Evaluate the finetuned model 
