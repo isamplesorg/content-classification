@@ -6,7 +6,6 @@ Training, evaluation code of classifiers that were created for the purpose of me
 
 ## Setup
 Download the dataset, and the checkpoint of the finetuned model based on the schema. 
-*URL: to be updated 
 <br/>
 | Dataset                |  Finetuned Model |  Dataset  |
 | -------------------- | --------------------------------------------------------------------------------: | ------------------------------------------------------------------------: | 
