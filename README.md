@@ -6,13 +6,12 @@ Training, evaluation code of classifiers that were created for the purpose of me
 
 ## Setup
 Download the dataset, and the checkpoint of the finetuned model based on the schema. 
-*URL: to be updated 
 <br/>
 | Dataset                |  Finetuned Model |  Dataset  |
 | -------------------- | --------------------------------------------------------------------------------: | ------------------------------------------------------------------------: | 
-| `SESAR`  |     [Model]() |     [Dataset]() |
-| `OPENCONTEXT: Material`  |     [Model]() |     [Dataset]() |
-| `OPENCONTEXT: Sample `  |     [Model]() |     [Dataset]() |
+| `SESAR`  |     [Model](https://drive.google.com/drive/folders/1WIlC-T5FlRLm8JT0uGt_mI4PWZFAoHz3) |     [Dataset](https://drive.google.com/drive/folders/1XvpNynbiCHbvlYX90AYbFDinjNplRXtg) |
+| `OPENCONTEXT: Material`  |     [Model](https://drive.google.com/drive/folders/1aPoLCHSi_ezse_TO5y6utnEUMor5lt8l) |     [Dataset](https://drive.google.com/drive/folders/1XvpNynbiCHbvlYX90AYbFDinjNplRXtg) |
+| `OPENCONTEXT: Sample `  |     [Model](https://drive.google.com/drive/folders/1UGiFJRcXDIQ8qoHArYzMOq2aLFOfVgbP) |     [Dataset](https://drive.google.com/drive/folders/1XvpNynbiCHbvlYX90AYbFDinjNplRXtg) |
 
 
 <br/>
