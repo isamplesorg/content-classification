@@ -68,7 +68,7 @@ def preprocess(dataframe, selected_material_type=None):
 
 
 def create_dataset(dataframe, tokenizer):
-  MAX_LENGTH = 64
+  MAX_LENGTH = 256
   inputs = {
           "input_ids":[],
           "attention_mask":[]
@@ -85,7 +85,8 @@ def create_dataset(dataframe, tokenizer):
           combined+= row_value +" , "
       sents.append(combined)
     return sents
-  sents = create_concatenated_text(dataframe)
+  #sents = create_concatenated_text(dataframe)
+  sents = dataframe['concatenated_text'].values.tolist()
   for sent in sents:
     tokenized_input = tokenizer(sent,max_length=MAX_LENGTH, padding='max_length', truncation=True)
     inputs["input_ids"].append(torch.tensor(tokenized_input["input_ids"]))
@@ -117,7 +118,7 @@ def create_custom_trainer(class_weights):
           return (loss, outputs) if return_outputs else loss
   return CustomTrainer
 
-def train(selected_type, dataframe, tokenizer, batch_size, train_mode, MODEL_DIR, OUTPUT_DIR):
+def eval(selected_type, dataframe, tokenizer, batch_size, train_mode, MODEL_DIR, OUTPUT_DIR):
 
   train_df, dev_df, test_df = preprocess(dataframe,selected_type)
   test_dataset = create_dataset(test_df,tokenizer)
@@ -162,7 +163,7 @@ def train(selected_type, dataframe, tokenizer, batch_size, train_mode, MODEL_DIR
       print("%s \t\t\t %0.2f \t %0.2f \t %0.2f"% (le.inverse_transform([int(key)])[0],score['precision'], score['recall'], score['f1-score']))
   #write the results to excel and save
   result_df = pd.DataFrame(data=zip(keys,precision,recall,f1), columns=['label','precision','recall','f1'])
-  result_output_dir =OUTPUT_DIR+"/sesar_result.xlsx"
+  result_output_dir =OUTPUT_DIR+"/SESAR_evaluation_result.xlsx"
   result_df.to_excel(result_output_dir)
   print("Macro average: ",f1_score(y_test,test_pred,average='macro'))
 
@@ -206,7 +207,7 @@ def main():
     #load tokenizer 
     tokenizer = BertTokenizer.from_pretrained('allenai/scibert_scivocab_uncased', do_lower_case=True, use_fast=True)
 
-    train(args.material_type, df, tokenizer, args.batch_size,args.lr_rate, args.nb_epochs, args.train_mode, args.model_dir, args.output_dir)
+    eval(args.material_type, df, tokenizer, args.batch_size,args.lr_rate, args.nb_epochs, args.train_mode, args.model_dir, args.output_dir)
 
 
 

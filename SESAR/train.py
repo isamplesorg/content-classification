@@ -10,7 +10,7 @@ import torch.nn as nn
 from sklearn.utils import compute_class_weight
 from sklearn.metrics import f1_score, classification_report
 import pickle
-
+from datetime import datetime
 os.environ["WANDB_MODE"]="disabled"
 
 """## Model training"""
@@ -68,7 +68,7 @@ def preprocess(dataframe, selected_material_type=None):
 
 
 def create_dataset(dataframe, tokenizer):
-  MAX_LENGTH = 64
+  MAX_LENGTH = 256
   inputs = {
           "input_ids":[],
           "attention_mask":[]
@@ -85,7 +85,8 @@ def create_dataset(dataframe, tokenizer):
           combined+= row_value +" , "
       sents.append(combined)
     return sents
-  sents = create_concatenated_text(dataframe)
+  #sents = create_concatenated_text(dataframe)
+  sents = dataframe['concatenated_text'].values.tolist()
   for sent in sents:
     tokenized_input = tokenizer(sent,max_length=MAX_LENGTH, padding='max_length', truncation=True)
     inputs["input_ids"].append(torch.tensor(tokenized_input["input_ids"]))
@@ -122,14 +123,15 @@ def train(selected_type, dataframe, tokenizer, batch_size, learning_rate, epochs
   train_df, dev_df, test_df = preprocess(dataframe,selected_type)
   train_dataset = create_dataset(train_df, tokenizer)
   dev_dataset = create_dataset(dev_df,tokenizer)
-  test_dataset = create_dataset(test_df,tokenizer)
+  #test_dataset = create_dataset(test_df,tokenizer)
 
   #load model
   model = BertForSequenceClassification.from_pretrained("allenai/scibert_scivocab_uncased", num_labels = len(le.classes_), )
 
   # Tell pytorch to run this model on the GPU.
   desc = model.cuda()
-
+  now =str( datetime.now() )
+  output_dir = "./results_SESAR/"+now+"_"+str(learning_rate)+"_"+str(batch_size)+"_"+str(epochs)
   training_args = TrainingArguments(
           output_dir= output_dir,     # output directory
           num_train_epochs=epochs,              # total number of training epochs
@@ -138,11 +140,15 @@ def train(selected_type, dataframe, tokenizer, batch_size, learning_rate, epochs
           learning_rate = learning_rate,
           warmup_steps=500,                # number of warmup steps for learning rate scheduler
           weight_decay=0.01, 
+          metric_for_best_model = 'f1',
           load_best_model_at_end=True,            
-          logging_dir=output_dir,            # directory for storing logs
+          logging_dir='./logs',            # directory for storing logs
           logging_steps=10,
-          evaluation_strategy = "epoch", #To calculate metrics per epoch
-          save_strategy = "epoch"
+          evaluation_strategy = "steps", 
+          eval_steps = 1000,
+          save_steps = 2000,
+          do_train = True,
+          do_eval = True,
   )
   #get class weight
   class_weights = get_class_weights(train_df)
