@@ -14,7 +14,8 @@ from torch.utils.data import Dataset
 from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
 
 # import pickle
-
+# code by Sarah Song and Stephen Richard
+# 2023-09
 
 os.environ["WANDB_MODE"] = "disabled"
 #os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "backend:cudaMallocAsync"
