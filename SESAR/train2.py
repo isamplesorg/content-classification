@@ -23,13 +23,14 @@ os.environ["WANDB_MODE"] = "disabled"
 #!export CUDA_VISIBLE_DEVICES=""
 
 #global variables
-classcol = "iSampleMaterial"  # classcol is the target class that should be inferred fromtext in traintextcol
+#classcol = "iSampleMaterial"  # classcol is the target class that should be inferred fromtext in traintextcol
 #classcol = "extMaterialType"
+classcol = "iSamMaterialSampleType"
 rand_state = int(43) # was 19  mak 78; np.split uses this for reproducible subsetting of a dataframe
 samplesize = int(0)
 classname = ""
-#traintextcol = "traintext"  # name of the field in the data that is used to classify
-traintextcol = "concatenated_text"
+traintextcol = "traintext"  # name of the field in the data that is used to classify
+#traintextcol = "concatenated_text"
 
 #training parameters:
 nb_epochs = int(10)  #was 10,
@@ -179,7 +180,7 @@ def preprocess(dataframe, selected_material_type=None):
 
 def preprocess_3(dataframe):
     # classname : samplesize
-    classdict = {
+    classdictiSamMaterial = {
         "mat:rock": 2000,
         "mat:mineral": 2000,
         "mat:organicmaterial": 2000,
@@ -276,7 +277,27 @@ def preprocess_3(dataframe):
         "rksd:Fault_Related_Material": 100
     }
 
-    rand_state = int(201) #was 19
+    classdict = {
+        "spec:othersolidobject": 63000,
+        "spec:genericaggregation": 12000,
+        "spec:wholeorganism": 5000,
+        "spec:slurrybiomeaggregation": 5000,
+        "spec:bundlebiomeaggregation": 4000,
+        "spec:organismpart": 3000,
+        "spec:fluidincontainer": 3000,
+        "spec:organismproduct": 2500,
+        "spec:fossil": 1500,
+        "spec:analyticalpreparation": 1400,
+        "spec:biologicalspecimen": 700,
+        "spec:physicalspecimen": 700,
+        "xxx": 500,
+        "spec:artifact": 250,
+        "spec:experimentalproduct": 150,
+        "spec:researchproduct": 60,
+        "spec:anthropogenicaggregation": 44
+    }
+
+
     samplesize = int(0)
     classname = ""
 
@@ -398,9 +419,6 @@ precision = []
 recall = []
 f1 = []
 
-
-
-
 logits = trainer.predict(test_dataset)[0] #get the logits
 
 test_pred = np.argmax(logits,axis=-1)
@@ -413,7 +431,8 @@ res = classification_report(y_test,test_pred,output_dict=True)
 print(logits[0])
 logits.shape
 
-#print(test_dataset.__getitem__(3))
+print ("N epochs =", nb_epochs, " Batch: ", batch_size, " learn rate: ", lr_rate)
+print ("random seed: ", rand_state)
 
 for key, score in res.items():
   if key.isdigit():
@@ -424,8 +443,12 @@ for key, score in res.items():
     print("%s \t\t\t %0.2f \t %0.2f \t %0.2f"% (le.inverse_transform([int(key)])[0],score['precision'], score['recall'], score['f1-score']))
 
 #write the results to excel and save
+
+filenamestr = "-" + classcol + "-" + str(rand_state) + "-" + str(nb_epochs) + "-" + str(batch_size) + "-" + str(lr_rate)
+
 result_df = pd.DataFrame(data=zip(keys,precision,recall,f1), columns=['label','precision','recall','f1'])
-result_output_dir ="output/sesar_result.xlsx"
+result_output_dir ="output/sesar_result" + filenamestr + ".xlsx"
 result_df.to_excel(result_output_dir)
 print("Macro average: ",f1_score(y_test,test_pred,average='macro'))
 
+print("all done")
