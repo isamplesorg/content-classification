@@ -5,9 +5,12 @@ from datasets import Dataset, DatasetDict
 import logging
 import torch
 import os
+import numpy as np
+from datasets import load_metric
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 os.environ["WANDB_MODE"]="disabled"
+
 """## Model training"""
 if torch.cuda.is_available():    
     # GPU is available
@@ -67,12 +70,20 @@ def create_datasets(tokenizer, train_df, dev_df, max_length):
     )
     return train_ds, dev_ds
 
+def compute_metrics(eval_pred):
+    metric = load_metric('glue', 'rte') # textual entailment task
+    predictions, labels = eval_pred
+    predictions = np.argmax(predictions, axis=-1)
+    return metric.compute(predictions=predictions, references=labels)
+
     
 def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, lr_rate, weight_decay, train_batch_size, eval_batch_size, max_length):
     # load pretrained model and tokenizer 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    # model is finetuned on our domain specific NLI data
+    num_labels = 3 # entailment or neutral 
     model = (
-        AutoModelForSequenceClassification.from_pretrained(model_name)
+        AutoModelForSequenceClassification.from_pretrained(model_name, num_labels = num_labels)
     )
     config = model.config
     logging.info(f"Loaded pretrained model {model_name}")
@@ -86,7 +97,7 @@ def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, 
     output_dir =  template_type + "_" + model_name + "_" + str(num_epochs) + "_" + str(lr_rate) + "_" + str(weight_decay) + "_" + str(train_batch_size)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-        
+    metric_name = "accuracy"
     training_args = TrainingArguments(
         output_dir=output_dir,
         log_level='error',
@@ -97,14 +108,17 @@ def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, 
         save_strategy='epoch',
         warmup_steps=500, 
         gradient_accumulation_steps=8, # batch size * accumulation_steps = total batch size
-        weight_decay=weight_decay
+        weight_decay=weight_decay,
+        load_best_model_at_end=True,
+        metric_for_best_model=metric_name,
     )
     
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_ds,
-        eval_dataset=dev_ds
+        eval_dataset=dev_ds,
+        compute_metrics=compute_metrics
     )
     
     trainer.train()
