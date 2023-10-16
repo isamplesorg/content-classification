@@ -13,60 +13,53 @@ from sklearn.utils import compute_class_weight
 from torch.utils.data import Dataset
 from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
 
-# import pickle
 # code by Sarah Song and Stephen Richard
 # 2023-09
 
 os.environ["WANDB_MODE"] = "disabled"
-#os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "backend:cudaMallocAsync"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ""
-#!export CUDA_VISIBLE_DEVICES=""
 
 #global variables
-classcol = "iSampleMaterial"  # classcol is the target class that should be inferred fromtext in traintextcol
+classcol = "iSampleMaterial"  # classcol contains the target class that should be inferred from
+# text in traintextcol
 #classcol = "extMaterialType"
 #classcol = "iSamMaterialSampleType"
-rand_state = int(43) # was 19  mak 78; np.split uses this for reproducible subsetting of a dataframe
+rand_state = int(43) # np.split uses this for reproducible subsetting of a dataframe
 samplesize = int(0)
 classname = ""
-traintextcol = "traintext"  # name of the field in the data that is used to classify
+traintextcol = "traintext"  # name of the field in that contains the text used to classify
 #traintextcol = "concatenated_text"
 
 #training parameters:
 nb_epochs = int(10)  #was 10,
 batch_size = int(20) # 30.
-lr_rate = float(0.0001) #was.01
+lr_rate = float(0.0001) #was.01  lower value seemed to be a critical factor in getting things
+  # to work
 
 le = preprocessing.LabelEncoder()
-# use this to map categories to integers.
+# this is a class containing functions that map categories (classcol) to integers.
 
-  #load tokenizer
+#load tokenizer.
 tokenizer = BertTokenizer.from_pretrained('allenai/scibert_scivocab_uncased', do_lower_case=True, use_fast=True)
 
 # If there's a GPU available...
 if torch.cuda.is_available():
-
     # Tell PyTorch to use the GPU.
     device = torch.device("cuda")
     print('There are %d GPU(s) available.' % torch.cuda.device_count())
     print('We will use the GPU:', torch.cuda.get_device_name(0))
-
 # If not...
 else:
     print('No GPU available, using the CPU instead.')
     device = torch.device("cpu")
 
 class MulticlassDataset(Dataset):
-
     def __init__(self, encodings, labels):
       self.encodings = encodings
       self.labels = labels
-
     def __getitem__(self, idx):
         item = {key: val[idx] for key, val in self.encodings.items()}
         item['labels'] = self.labels[idx]
         return item
-
     def __len__(self):
         return len(self.labels)
 
@@ -77,15 +70,6 @@ def create_dataset(dataframe, tokenizer):
         "input_ids": [],
         "attention_mask": []
     }
-
-    #  refactor this to remove unneeded function call and simplify
-    # def getTrainText(dataframe, ttcol):  # smr version-- pre concatenate training text in one column
-    #     ttext = []
-    #     for _, row in dataframe.iterrows():
-    #         row_value = row[ttcol]
-    #         ttext.append(str(row_value))
-    #     return ttext
-    # sents = getTrainText(dataframe, traintextcol)
 
     sents = []
     for _, row in dataframe.iterrows():
@@ -149,6 +133,7 @@ def preprocess(dataframe, selected_material_type=None):
     le.fit(new_df.iSampleMaterial)
     print(" number of labels: ", len(le.classes_))
     print("label encoder classes:", le.classes_)
+    # replace strings with integers in the data that will be used for training
     new_df[classcol] = le.transform(new_df.iSampleMaterial)
 
     # split data to training df, dev df, test df
@@ -158,18 +143,23 @@ def preprocess(dataframe, selected_material_type=None):
     train_df, dev_df, test_df = np.split(new_df.sample(n=sample_size, random_state=42),
                                          [int(.6 * sample_size), int(.8 * sample_size)])
 
+    # save the training dataframes for debugging
     train_df.to_csv('output/train_df.csv')
     dev_df.to_csv('output/dev_df.csv')
     test_df.to_csv('output/test_df.csv')
 
     return train_df, dev_df, test_df
 
-
-# use dictionary of classes
-# SMR 2023-08-21
-
 def preprocess_3(dataframe):
-    # classname : samplesize
+    # uses dictionary of classes that specifies the number of sample to take for each class
+    #  in this case, the values a based on the frequency distribution in the data and assigned ad
+    #  hoc by the programmer. similar effect to the class_Weights, but explicit.  The numbers here
+    #  take the same number of samples for the most common classes, and a progressively larger
+    #  fraction of sample for the less common classes. Values selected here are based on the
+    #  frequency distribution for MaterialType in SESARTrainingiSamKeywords.csv
+    # SMR 2023-08-21
+
+    # the dictionary named 'classdict' is the on that gets used.
     classdict = {
         "mat:rock": 2000,
         "mat:mineral": 2000,
@@ -188,6 +178,7 @@ def preprocess_3(dataframe):
         "mat:anthropogenicmetal": 50
     }
 
+# dictionary for rock sediment mineral extension terms used in SESARTrainingiSamKeywords.csv
     classdictextmat = {
         "ISI": 43000,
         "ming:silicategermanatemineral": 8000,
@@ -267,6 +258,7 @@ def preprocess_3(dataframe):
         "rksd:Fault_Related_Material": 100
     }
 
+    # dictionary for material sample type (specimen type) extension terms used in SESARTrainingiSamKeywords.csv
     classdictspec = {
         "spec:othersolidobject": 63000,
         "spec:genericaggregation": 12000,
@@ -315,16 +307,8 @@ def preprocess_3(dataframe):
         test_df = pd.concat([test_df_work, test_df])
         dev_df = pd.concat([dev_df_work, dev_df])
 
-        # sort by igsn, convert labels to integers
-
-    # export_df = pd.DataFrame()
-    # export_df = pd.concat([export_df, train_df])
-    # export_df = pd.concat([export_df, test_df])
-    # export_df = pd.concat([export_df, dev_df])
-    # export_df.to_csv('output/export_df.csv')
-
-
-    # train_df.sort_values(by='igsn', inplace=True )
+   # sort by igsn, convert labels to integers
+    # train_df.sort_values(by='igsn', inplace=True )  # skip the sorting, not clear that it helps...
     train_df[classcol] = le.transform(train_df[classcol])
     # test_df.sort_values(by='igsn', inplace=True )
     test_df[classcol] = le.transform(test_df[classcol])
@@ -336,17 +320,25 @@ def preprocess_3(dataframe):
     dev_df.to_csv('output/dev_df.csv')
     test_df.to_csv('output/test_df.csv')
 
-    return train_df, dev_df, test_df   # end of preprocesS_3
+    return train_df, dev_df, test_df   # end of preprocess_3
 
 
 # ***END Functions definitions **********************************************************
 # *********************************************************************
-#  START processing here
+#  START real processing here
 
-#df = pd.read_csv("iSamplesMaterialTrainingSmall.csv")
-#df = pd.read_csv("SESARTrainingiSamKeywords.csv", usecols=['igsn', 'traintext'],dtype={'igsn':str,'traintext':str})
+# read the csv file with training data; only read the columns we need
 #df = pd.read_csv("MaterialTypeData2023-08-07.csv") # only has rock, sediment, rocksed, soil, mineral
+    #  used for initial debugging to get the training arguments set up so the precision and recall values
+    #  are acceptable.
+
+#  this is the full ~1,000,000 record selection from S. Ramdeen, with annotation updated by SMR.
 #df = pd.read_csv("SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+
+# this is training data extracted using preprocess_3, with an additional ~8000 annotated records
+#  selected at random from the raw data using GetTrainingData.py, and removing duplicate records,
+#  and manually deleting ~60 % of records that are very repetitive (DSDP core samples mostly).  Total of 20048
+#  samples. preprocess function selects 20000 of these (nice round number...)
 df = pd.read_csv("SESARTraining-iSamMaterial.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
 
 df = df.fillna("")
@@ -354,34 +346,32 @@ df = df.fillna("")
 df = df[df[classcol]!=""]
 df = df[df[traintextcol]!=""]
 
-#load tokenizer
-# train(material_type, df, tokenizer, batch_size,lr_rate, nb_epochs, train_mode, output_dir)
 
-# insert train function in line here for debugging...
-train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song
-#train_df, dev_df, test_df = preprocess_2(df)  #steves update, only rock, mineral, rocksed, soil, sediment
-#train_df, dev_df, test_df = preprocess_3(df)  #dictionary to set sample size for each class
+train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song. Grabs a fixed number of samples
+#train_df, dev_df, test_df = preprocess_3(df)  # use dictionary to set sample size for each class
 
 
 #print("train_df columns:", train_df.columns.values)
 #print("train_df:", train_df.describe)
-#train_df['iSampleMaterial'].values
 
 train_dataset = create_dataset(train_df, tokenizer, classcol)
 dev_dataset = create_dataset(dev_df,tokenizer, classcol)
 test_dataset = create_dataset(test_df,tokenizer,classcol)
 
 print ("le classes: ", len(le.classes_))
-# load model
+# load model https://huggingface.co/allenai/scibert_scivocab_uncased
+# a BERT model trained on scientific text. The training corpus was papers taken from Semantic Scholar.
+#  Corpus size is 1.14M papers, 3.1B tokens.
+#  Uses the full text of the papers in training, not just abstracts. https://www.aclweb.org/anthology/D19-1371"
 model = BertForSequenceClassification.from_pretrained("allenai/scibert_scivocab_uncased", num_labels = len(le.classes_), problem_type = "single_label_classification")
 
-
+#  set to 'custom' to use custom trainer that should account for class imbalance during training
+# set to 'FALSE' (or anything else) to use the regular trainer.
 train_mode = str('FALSE')
 #train_mode = str('custom')
- #  Whether we account for class imbalance during training by using a custom trainer
-    # (custom) or not (none)
+
 output_dir =str('output')
- #Output directory where the model checkpoint will be saved
+ #Output directory where model checkpoints and other output will be saved
 
 desc = model.to(device)
 training_args = TrainingArguments(
@@ -408,12 +398,13 @@ if train_mode == "custom":
 else:
     trainer = Trainer(model = model, args =training_args, train_dataset=train_dataset, eval_dataset=dev_dataset)
 
-
+# this is where most of the work gets done. set timer to see how long it takes
 st = time.time()
 trainer.train()
 et = time.time()
 elapsed_time = et - st
 print ('trainer execution time:', elapsed_time, ' seconds')
+
 # conduct evaluation
 keys = []
 precision = []
@@ -444,7 +435,6 @@ for key, score in res.items():
     print("%s \t\t\t %0.2f \t %0.2f \t %0.2f"% (le.inverse_transform([int(key)])[0],score['precision'], score['recall'], score['f1-score']))
 
 #write the results to excel and save
-
 filenamestr = "-" + classcol + "-" + str(rand_state) + "-" + str(nb_epochs) + "-" + str(batch_size) + "-" + str(lr_rate)
 
 result_df = pd.DataFrame(data=zip(keys,precision,recall,f1), columns=['label','precision','recall','f1'])
@@ -452,6 +442,7 @@ result_output_dir ="output/sesar_result" + filenamestr + ".xlsx"
 result_df.to_excel(result_output_dir)
 print("Macro average: ",f1_score(y_test,test_pred,average='macro'))
 
+#  save the model to use for classifying unknowns. (see classificationPipeline.py)
 print("SAVE MODEL")
 result_output_dir ="output/savedmodels/model" + filenamestr
 trainer.save_model(result_output_dir)
