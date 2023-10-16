@@ -3,7 +3,11 @@
 .env
 .idea
 SESAR/.ipynb_checkpoints
-SESAR/output/checkpoint*
-SESAR/trainingDataApproach/output/checkpoint-3600/config.json
-SESAR/mlenvpoetry/mlenvpoetry/__init__.py
-SESAR/trainingDataApproach/output/savedmodels/model-iSamMaterialSampleType-43-10-20-0.0001/config.json
+SESAR/trainingDataApproach/output/checkpoint*
+SESAR/mlenvpoetry*
+SESAR/trainingDataApproach/output/savedmodels*
+SESAR/trainingDataApproach/trainingData/SESARTrainingiSamKeywords.csv
+SESAR/trainingDataApproach/trainingData/SESARTrainingiSamKeywords.xlsx
+SESAR/trainingDataApproach/trainingData/SESAR_training_dataset_archive.xlsx
+SESAR/trainingDataApproach/output/MaterialsClassification*.csv
+SESAR/trainingDataApproach/dataToClassify*
