@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-import openpyxl
+#import openpyxl
 from sklearn import preprocessing
 from sklearn.metrics import f1_score, classification_report
 from sklearn.utils import compute_class_weight
@@ -23,9 +23,9 @@ os.environ["WANDB_MODE"] = "disabled"
 #!export CUDA_VISIBLE_DEVICES=""
 
 #global variables
-#classcol = "iSampleMaterial"  # classcol is the target class that should be inferred fromtext in traintextcol
+classcol = "iSampleMaterial"  # classcol is the target class that should be inferred fromtext in traintextcol
 #classcol = "extMaterialType"
-classcol = "iSamMaterialSampleType"
+#classcol = "iSamMaterialSampleType"
 rand_state = int(43) # was 19  mak 78; np.split uses this for reproducible subsetting of a dataframe
 samplesize = int(0)
 classname = ""
@@ -71,36 +71,26 @@ class MulticlassDataset(Dataset):
         return len(self.labels)
 
 
-def create_dataset(dataframe, tokenizer, thecol):
+def create_dataset(dataframe, tokenizer):
     MAX_LENGTH = 100  # raise from 60 to 80 to 100
     inputs = {
         "input_ids": [],
         "attention_mask": []
     }
 
-    # use this if concatenting text from all fields in the data (except the class field)
-    # features_columns = [x for x in dataframe.columns.values if x != thecol]
-
-    # def create_concatenated_text(dataframe):
-    #     """combine the columns text to create a single sentence"""
-    #     ttext = []  # text that is a concatenation of all columns
+    #  refactor this to remove unneeded function call and simplify
+    # def getTrainText(dataframe, ttcol):  # smr version-- pre concatenate training text in one column
+    #     ttext = []
     #     for _, row in dataframe.iterrows():
-    #         row_value = row["text"]
-    #         if row_value != "" and type(row_value) == str:
-    #             combined += row_value  # +" , "
-    #         ttext.append(combined)
+    #         row_value = row[ttcol]
+    #         ttext.append(str(row_value))
     #     return ttext
+    # sents = getTrainText(dataframe, traintextcol)
 
-    # sents = create_concatenated_text(dataframe)
-
-    def getTrainText(dataframe, ttcol):  # smr version-- pre concatenate training text in one column
-        ttext = []
-        for _, row in dataframe.iterrows():
-            row_value = row[ttcol]
-            ttext.append(str(row_value))
-        return ttext
-
-    sents = getTrainText(dataframe, traintextcol)
+    sents = []
+    for _, row in dataframe.iterrows():
+        row_value = row[traintextcol]
+        sents.append(str(row_value))
 
     for sent in sents:
         tokenized_input = tokenizer(sent, max_length=MAX_LENGTH, padding='max_length', truncation=True)
@@ -108,7 +98,6 @@ def create_dataset(dataframe, tokenizer, thecol):
         inputs["attention_mask"].append(torch.tensor(tokenized_input["attention_mask"]))
 
     print("torch tensor dataframe columns:", dataframe.columns.values)
-    # print("dataframe['iSampleMaterial']: ",dataframe['iSampleMaterial'].values )
     labels = torch.tensor(dataframe[classcol].values.tolist())
 
     return MulticlassDataset(inputs, labels)
@@ -159,10 +148,11 @@ def preprocess(dataframe, selected_material_type=None):
     # convert labels into integers
     le.fit(new_df.iSampleMaterial)
     print(" number of labels: ", len(le.classes_))
+    print("label encoder classes:", le.classes_)
     new_df[classcol] = le.transform(new_df.iSampleMaterial)
 
     # split data to training df, dev df, test df
-    sample_size = 10000
+    sample_size = 20000
     # fraction=sample_size/len(new_df)  # get about 500 samples
     # sel_len = sample_size
     train_df, dev_df, test_df = np.split(new_df.sample(n=sample_size, random_state=42),
@@ -180,7 +170,7 @@ def preprocess(dataframe, selected_material_type=None):
 
 def preprocess_3(dataframe):
     # classname : samplesize
-    classdictiSamMaterial = {
+    classdict = {
         "mat:rock": 2000,
         "mat:mineral": 2000,
         "mat:organicmaterial": 2000,
@@ -277,7 +267,7 @@ def preprocess_3(dataframe):
         "rksd:Fault_Related_Material": 100
     }
 
-    classdict = {
+    classdictspec = {
         "spec:othersolidobject": 63000,
         "spec:genericaggregation": 12000,
         "spec:wholeorganism": 5000,
@@ -297,9 +287,6 @@ def preprocess_3(dataframe):
         "spec:anthropogenicaggregation": 44
     }
 
-
-    samplesize = int(0)
-    classname = ""
 
     # empty data frames to accumulate results
     work_df = pd.DataFrame()
@@ -329,6 +316,14 @@ def preprocess_3(dataframe):
         dev_df = pd.concat([dev_df_work, dev_df])
 
         # sort by igsn, convert labels to integers
+
+    # export_df = pd.DataFrame()
+    # export_df = pd.concat([export_df, train_df])
+    # export_df = pd.concat([export_df, test_df])
+    # export_df = pd.concat([export_df, dev_df])
+    # export_df.to_csv('output/export_df.csv')
+
+
     # train_df.sort_values(by='igsn', inplace=True )
     train_df[classcol] = le.transform(train_df[classcol])
     # test_df.sort_values(by='igsn', inplace=True )
@@ -341,13 +336,18 @@ def preprocess_3(dataframe):
     dev_df.to_csv('output/dev_df.csv')
     test_df.to_csv('output/test_df.csv')
 
-    return train_df, dev_df, test_df
+    return train_df, dev_df, test_df   # end of preprocesS_3
+
+
+# ***END Functions definitions **********************************************************
+# *********************************************************************
+#  START processing here
 
 #df = pd.read_csv("iSamplesMaterialTrainingSmall.csv")
 #df = pd.read_csv("SESARTrainingiSamKeywords.csv", usecols=['igsn', 'traintext'],dtype={'igsn':str,'traintext':str})
 #df = pd.read_csv("MaterialTypeData2023-08-07.csv") # only has rock, sediment, rocksed, soil, mineral
-
-df = pd.read_csv("SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+#df = pd.read_csv("SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+df = pd.read_csv("SESARTraining-iSamMaterial.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
 
 df = df.fillna("")
 #remove rows that do not have a class name or training text
@@ -358,9 +358,9 @@ df = df[df[traintextcol]!=""]
 # train(material_type, df, tokenizer, batch_size,lr_rate, nb_epochs, train_mode, output_dir)
 
 # insert train function in line here for debugging...
-#train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song
+train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song
 #train_df, dev_df, test_df = preprocess_2(df)  #steves update, only rock, mineral, rocksed, soil, sediment
-train_df, dev_df, test_df = preprocess_3(df)  #dictionary to set sample size for each class
+#train_df, dev_df, test_df = preprocess_3(df)  #dictionary to set sample size for each class
 
 
 #print("train_df columns:", train_df.columns.values)
@@ -376,8 +376,8 @@ print ("le classes: ", len(le.classes_))
 model = BertForSequenceClassification.from_pretrained("allenai/scibert_scivocab_uncased", num_labels = len(le.classes_), problem_type = "single_label_classification")
 
 
-#train_mode = str('FALSE')
-train_mode = str('custom')
+train_mode = str('FALSE')
+#train_mode = str('custom')
  #  Whether we account for class imbalance during training by using a custom trainer
     # (custom) or not (none)
 output_dir =str('output')
@@ -400,9 +400,10 @@ training_args = TrainingArguments(
           save_strategy = "epoch"
   )
 
-class_weights = get_class_weights(train_df)
-CustomTrainer = create_custom_trainer(class_weights)
+
 if train_mode == "custom":
+    class_weights = get_class_weights(train_df)
+    CustomTrainer = create_custom_trainer(class_weights)
     trainer = CustomTrainer(model = model, args =training_args, train_dataset=train_dataset, eval_dataset=dev_dataset)
 else:
     trainer = Trainer(model = model, args =training_args, train_dataset=train_dataset, eval_dataset=dev_dataset)
@@ -450,5 +451,9 @@ result_df = pd.DataFrame(data=zip(keys,precision,recall,f1), columns=['label','p
 result_output_dir ="output/sesar_result" + filenamestr + ".xlsx"
 result_df.to_excel(result_output_dir)
 print("Macro average: ",f1_score(y_test,test_pred,average='macro'))
+
+print("SAVE MODEL")
+result_output_dir ="output/savedmodels/model" + filenamestr
+trainer.save_model(result_output_dir)
 
 print("all done")
