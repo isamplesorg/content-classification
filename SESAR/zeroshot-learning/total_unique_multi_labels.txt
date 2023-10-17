@@ -1,0 +1,101 @@
+foid syenitoid
+mineral-carbonate or nitrate
+tuffite
+sedimentary rock
+gabbroid
+carbonate sediment
+mylonitic rock
+sediment
+peridotite
+porphyry
+glass rich igneous rock
+carbonate sedimentary rock
+mineral-borate
+gaseous material
+liquid water
+mineral-halide
+fluid material
+mineral-silicate or germanate
+mud size sediment
+alkali feldspar granite
+granitoid
+pyroclastic rock
+intermediate composition igneous rock
+tonalite
+chemical sedimentary material
+any anthropogenic material
+fine grained igneous rock
+gravel size sediment
+cataclasite series
+biogenic sediment
+gabbroic rock
+residual material
+phaneritic igneous rock
+rhyolitoid
+tephritoid
+dioritoid
+coal
+ceramic clay
+mineral-sulfate, selenate, or tellurate
+mineral-phosphate, arsenate, or vanadate
+basalt
+syenitoid
+fault related material
+phonolitoid
+impact generated material
+andesite
+diamictite
+mineral-native element
+mineral-organic compound
+ultramafic igneous rock
+hybrid sedimentary rock
+natural solid material
+granite
+foiditoid
+metamorphic rock
+metasomatic rock
+granodiorite
+high magnesium fine grained igneous rock
+particulate
+anthropogenic metal material
+breccia
+massive sulphide
+pyroxenite
+rock
+quartz rich igneous rock
+clastic sediment
+generic sandstone
+iron rich sedimentary rock
+exotic composition igneous rock
+organic material
+trachytoid
+basic igneous rock
+glass
+breccia gouge series
+non clastic siliceous sediment
+pegmatite
+generic mudstone
+acidic igneous rock
+mineral-oxide
+hornblendite
+mineral
+anorthositic rock
+mineral-sulfide or sulfosalt
+foid gabbroid
+igneous rock
+tephra
+diamicton
+dacite
+biogenic non-organic material
+organic rich sedimentary rock
+non clastic siliceous sedimentary rock
+doleritic rock
+fragmental igneous rock
+soil
+aphanite
+anthropogenic material
+generic conglomerate
+foidolite
+clastic sedimentary rock
+charcoal
+sand size sediment

@@ -60,11 +60,22 @@ def get_zero_shot_predictions(multilabel,output_dir, test_df, template_type, lab
     test_col = 'concatenated_text_' + template_type
     if template_type=='C':
         test_col = 'concatenated_text_B' # no column for C exists for the test set 
+    # select hypothesis template
+    if template_type == "A":
+      hypothesis_template = "Material:{}."
+    elif template_type == "B":
+      hypothesis_template = "The material of this physical sample is {}."
+    else:
+      hypothesis_template = "The kind of material that constitutes this physical sample is {}."
+    prefix = "<s>"
+    suffix = "</s>"
     test_text = test_df[test_col].values.tolist()
+    # strip prefix
+    test_text = [text[len(prefix):][:-len(suffix)] for text in test_text]
     test_ds = Dataset.from_dict({'text': test_text })
     # get zero-shot predictions 
     preds_list = []
-    for text, output in tqdm(zip(test_text, classifier(KeyDataset(test_ds, 'text'), batch_size=batch_size, candidate_labels=label_names, multi_label=multilabel)),
+    for text, output in tqdm(zip(test_text, classifier(KeyDataset(test_ds, 'text'), batch_size=batch_size, hypothesis_template = hypothesis_template, candidate_labels=label_names, multi_label=multilabel)),
                              total=len(test_ds), desc="SESAR Zero Shot"):
         preds_list.append(output)
     if not multilabel:
@@ -93,6 +104,7 @@ def evaluate_classification_performance(multilabel, predicted_labels, gold_label
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--hypothesis_template_type", type=str, default='A')
+    parser.add_argument("--label_file", type=str)
     parser.add_argument("--test_dataset_dir", type=str)
     parser.add_argument("--eval_batch_size", type=int, default=32)
     parser.add_argument("--max_length", type=int, default=256)
@@ -112,9 +124,9 @@ if __name__ == '__main__':
    
     prefix = "mat:"
     if args.multilabel:
-        label_col_name = "description_material"
+        label_col_name ="label_list"
         # use the stored label space
-        gold_label_names = open('unique_multi_labels.txt').read().splitlines()
+        gold_label_names = open(args.label_file).read().splitlines()
     else:
         # using specified depth level to restrict the label space 
         if args.depth_level == 1:

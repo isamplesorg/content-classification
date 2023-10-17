@@ -106,8 +106,8 @@ def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, 
         per_device_eval_batch_size=eval_batch_size,
         evaluation_strategy='epoch',
         save_strategy='epoch',
-        warmup_steps=500, 
-        gradient_accumulation_steps=8, # batch size * accumulation_steps = total batch size
+        # warmup_steps=500, 
+        gradient_accumulation_steps=1, # batch size * accumulation_steps = total batch size
         weight_decay=weight_decay,
         load_best_model_at_end=True,
         metric_for_best_model=metric_name,

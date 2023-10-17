@@ -2,14 +2,18 @@ This directory contains the ongoing experiments on using Zeroshot Text Classific
 
 ## Datasets
 Different datasets were created from the original SESAR dump and the annotated data `SESARTrainingiSamKeywords.csv` to find the best method to solve our problem.
-The datasets that are used during this process will be uploaded [here](https://drive.google.com/drive/folders/1PCm8greoBSBXm-YNHeJwbvBLj7ytw6Gr?usp=sharing).
+The datasets that are used during this process will be uploaded [here](https://drive.google.com/drive/folders/1o9vZ4CzTDi0N93KKPCGgvcvqNTrPx4jI?usp=sharing).
 
+- `SESAR_ZTC_train_multi.csv`, `SESAR_ZTC_dev_multi.csv`, `SESAR_ZTC_test_multi.csv` :  Used for multilabel finetuning (non zero-shot)
 - `SESAR_ZTC_test_multiclass_label_fully_unseen.csv` : Used for multiclass label-fully-unseen tasks. 
 - `SESAR_ZTC_test_multilabel_label_fully_unseen.csv` : Used for multilabel label-fully-unseen tasks. 
 - `SESAR_ZTC_partial_label_unseen_train.csv`, `SESAR_ZTC_partial_label_unseen_dev.csv`,`SESAR_ZTC_partial_label_unseen_test.csv` : Used for multiclass partially-label-unseen tasks.
-
+- `SESAR_labeled_original.csv` : Original dump of SESAR description_material labeled records.
 
 ## Code
+
+-`hyperparam_search_ZTC.py` : Code to find the optimal hyperparameters for finetuning.
+
 -`finetune_ZTC.py` : Implementation of fine-tuning a textual entailment model on the SESAR dataset. Converts the dataset into a format that is applicable for textual entailment finetuning task and uses the given arguments to execute finetuning. The finetuned model will be stored in the output directory.
 
 -`evaluate.py` : Implementation of evaluating the model on SESAR dataset. The model that can be used could be either a finetuned model from finetune_ZTC.py or an out-of-box textual entailment model(completely zeroshot). Result of evaluation will be logged. Supports solving the task as a multilabel or multiclass. For multiclass approach, also contains implementation of using specified depth level of the entire hierarchical label space of iSamples vocabulary.
