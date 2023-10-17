@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
-#import openpyxl
+# import openpyxl
 from sklearn import preprocessing
 from sklearn.metrics import f1_score, classification_report
 from sklearn.utils import compute_class_weight
@@ -328,18 +328,18 @@ def preprocess_3(dataframe):
 #  START real processing here
 
 # read the csv file with training data; only read the columns we need
-#df = pd.read_csv("MaterialTypeData2023-08-07.csv") # only has rock, sediment, rocksed, soil, mineral
+#df = pd.read_csv("trainingData/MaterialTypeData2023-08-07-rockminsoilsed.csv") # only has rock, sediment, rocksed, soil, mineral
     #  used for initial debugging to get the training arguments set up so the precision and recall values
     #  are acceptable.
 
 #  this is the full ~1,000,000 record selection from S. Ramdeen, with annotation updated by SMR.
-#df = pd.read_csv("SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+#df = pd.read_csv("trainingData/SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
 
 # this is training data extracted using preprocess_3, with an additional ~8000 annotated records
 #  selected at random from the raw data using GetTrainingData.py, and removing duplicate records,
 #  and manually deleting ~60 % of records that are very repetitive (DSDP core samples mostly).  Total of 20048
 #  samples. preprocess function selects 20000 of these (nice round number...)
-df = pd.read_csv("SESARTraining-iSamMaterial.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+df = pd.read_csv("trainingData/SESARTraining-iSamMaterial.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
 
 df = df.fillna("")
 #remove rows that do not have a class name or training text
@@ -354,9 +354,9 @@ train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song. 
 #print("train_df columns:", train_df.columns.values)
 #print("train_df:", train_df.describe)
 
-train_dataset = create_dataset(train_df, tokenizer, classcol)
-dev_dataset = create_dataset(dev_df,tokenizer, classcol)
-test_dataset = create_dataset(test_df,tokenizer,classcol)
+train_dataset = create_dataset(train_df, tokenizer)
+dev_dataset = create_dataset(dev_df,tokenizer)
+test_dataset = create_dataset(test_df,tokenizer)
 
 print ("le classes: ", len(le.classes_))
 # load model https://huggingface.co/allenai/scibert_scivocab_uncased
