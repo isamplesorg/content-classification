@@ -1,14 +1,20 @@
-import datasets
+mport datasets
 from transformers import pipeline
-import os
 import torch
-import torch.nn as nn
 from transformers import BertTokenizer, BertForSequenceClassification
 from transformers.pipelines.pt_utils import KeyDataset
-from torch.utils.data import Dataset
 import pandas as pd
 #from sklearn import preprocessing
 import time
+# from sklearn import preprocessing
+import time
+
+import datasets
+import pandas as pd
+import torch
+from transformers import BertTokenizer, BertForSequenceClassification
+from transformers import pipeline
+from transformers.pipelines.pt_utils import KeyDataset
 
 classdict = {"LABEL_0":"mat:anthropogenicmetal",
 "LABEL_1":"mat:biogenicnonorganicmaterial",
