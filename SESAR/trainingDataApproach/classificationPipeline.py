@@ -1,11 +1,4 @@
-mport datasets
-from transformers import pipeline
-import torch
-from transformers import BertTokenizer, BertForSequenceClassification
-from transformers.pipelines.pt_utils import KeyDataset
-import pandas as pd
 #from sklearn import preprocessing
-import time
 # from sklearn import preprocessing
 import time
 
@@ -50,7 +43,7 @@ tokenizer = BertTokenizer.from_pretrained('allenai/scibert_scivocab_uncased')
 inputfilename =  "SESARTrainingiSamKeywords.csv"
 
 
-df = pd.read_csv(inputfilename, usecols=['igsn','traintext','iSampleMaterial'])
+df = pd.read_csv("trainingData/"+inputfilename, usecols=['igsn','traintext','iSampleMaterial'])
 df = pd.DataFrame(df)
 # load Dataset from Pandas DataFrame
 dataset = datasets.Dataset.from_pandas(df)
