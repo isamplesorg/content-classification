@@ -5,11 +5,15 @@ from datasets import Dataset, DatasetDict
 import logging
 import torch
 import os
+import datetime
 import numpy as np
+from transformers import EarlyStoppingCallback
 from datasets import load_metric
+import collections
+from collections import Counter
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
-os.environ["WANDB_MODE"]="disabled"
+os.environ["WANDB_API_KEY"]="7027708b12b5786cbe2d63abc8453bc4a1a84fa2"
 
 """## Model training"""
 if torch.cuda.is_available():    
@@ -45,9 +49,15 @@ def convert_dataframe_format(dataframe, template_type , config):
     text += neg_text
     labels += [config.label2id['NEUTRAL']] * len(neg_text)
 
+    neg_column = 'negative_sample_' + template_type + '2'
+    neg_text = dataframe[neg_column].values.tolist()
+    text += neg_text
+    labels += [config.label2id['NEUTRAL']] * len(neg_text)
+
     # generate new dataframe
     data = {'text': text, 'label': labels}
     df = pd.DataFrame(data)
+    print(collections.Counter(labels))
     # shuffle data
     return df.sample(frac=1, random_state=42).reset_index(drop=True)
 
@@ -94,7 +104,9 @@ def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, 
     train_ds, dev_ds = create_datasets(tokenizer, train_df, dev_df, max_length)
     logging.info(f"Dataset size : train - {len(train_ds)}, dev - {len(dev_ds)}")
     #### CONDUCT TRAINING ####
-    output_dir =  template_type + "_" + model_name + "_" + str(num_epochs) + "_" + str(lr_rate) + "_" + str(weight_decay) + "_" + str(train_batch_size)
+    current_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+    output_dir =  template_type + "_" + model_name + "_" + str(num_epochs) + "_" + str(lr_rate) + "_" + str(weight_decay) + "_" + str(train_batch_size) + "_" + str(current_time)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     metric_name = "accuracy"
@@ -104,11 +116,16 @@ def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, 
         num_train_epochs=num_epochs,
         per_device_train_batch_size=train_batch_size,
         per_device_eval_batch_size=eval_batch_size,
-        evaluation_strategy='epoch',
-        save_strategy='epoch',
-        # warmup_steps=500, 
-        gradient_accumulation_steps=1, # batch size * accumulation_steps = total batch size
+        evaluation_strategy='steps',
+        eval_steps=200,
+        save_steps=200,
+        save_total_limit=2,
+        save_strategy='steps',
+        #warmup_steps=500, 
+        gradient_accumulation_steps=8, # batch size * accumulation_steps = total batch size
         weight_decay=weight_decay,
+        lr_scheduler_type="linear",
+        report_to='wandb',
         load_best_model_at_end=True,
         metric_for_best_model=metric_name,
     )
@@ -118,7 +135,8 @@ def finetune_ZTC_model(train_df, dev_df, model_name, template_type, num_epochs, 
         args=training_args,
         train_dataset=train_ds,
         eval_dataset=dev_ds,
-        compute_metrics=compute_metrics
+        compute_metrics=compute_metrics,
+        callbacks = [EarlyStoppingCallback(early_stopping_patience=5)]
     )
     
     trainer.train()
@@ -136,8 +154,8 @@ if __name__ == '__main__':
     parser.add_argument("--dev_data_dir", type=str, required=True)
     parser.add_argument("--num_epochs", type=int, default=1)
     parser.add_argument("--lr_rate", type=float, default=2e-5)
-    parser.add_argument("--train_batch_size", type=int, default=16)
-    parser.add_argument("--eval_batch_size", type=int, default=16)
+    parser.add_argument("--train_batch_size", type=int, default=8)
+    parser.add_argument("--eval_batch_size", type=int, default=8)
     parser.add_argument("--weight_decay", type=float, default=0.01)
     parser.add_argument("--max_length", type=int, default=512)
     args = parser.parse_args()
@@ -145,6 +163,7 @@ if __name__ == '__main__':
     # load dataset
     dev_df = pd.read_csv(args.dev_data_dir)
     train_df = pd.read_csv(args.train_data_dir)
+    print(Counter(train_df['description_material'].values.tolist()))
     # finetune the textual entailment model on the dataset 
     output_dir = finetune_ZTC_model(train_df, dev_df, model_name=args.model_name, template_type=args.hypothesis_template_type,num_epochs=args.num_epochs, lr_rate=args.lr_rate, train_batch_size=args.train_batch_size, eval_batch_size=args.eval_batch_size,weight_decay=args.weight_decay,max_length=args.max_length)
     logging.info(f"Saved finetuned model in {output_dir}")
