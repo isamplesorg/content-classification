@@ -19,9 +19,9 @@ from transformers import BertTokenizer, BertForSequenceClassification, Trainer, 
 os.environ["WANDB_MODE"] = "disabled"
 
 #global variables
-classcol = "iSampleMaterial"  # classcol contains the target class that should be inferred from
+#classcol = "iSampleMaterial"  # classcol contains the target class that should be inferred from
 # text in traintextcol
-#classcol = "extMaterialType"
+classcol = "extMaterialType"
 #classcol = "iSamMaterialSampleType"
 rand_state = int(43) # np.split uses this for reproducible subsetting of a dataframe
 samplesize = int(0)
@@ -130,11 +130,11 @@ def preprocess(dataframe, selected_material_type=None):
     new_df = dataframe.copy()
 
     # convert labels into integers
-    le.fit(new_df.iSampleMaterial)
+    le.fit(new_df[classcol])
     print(" number of labels: ", len(le.classes_))
     print("label encoder classes:", le.classes_)
     # replace strings with integers in the data that will be used for training
-    new_df[classcol] = le.transform(new_df.iSampleMaterial)
+    new_df[classcol] = le.transform(new_df[classcol])
 
     # split data to training df, dev df, test df
     sample_size = 20000
@@ -160,7 +160,7 @@ def preprocess_3(dataframe):
     # SMR 2023-08-21
 
     # the dictionary named 'classdict' is the on that gets used.
-    classdict = {
+    classdict_iSamMaterial = {
         "mat:rock": 2000,
         "mat:mineral": 2000,
         "mat:organicmaterial": 2000,
@@ -179,7 +179,7 @@ def preprocess_3(dataframe):
     }
 
 # dictionary for rock sediment mineral extension terms used in SESARTrainingiSamKeywords.csv
-    classdictextmat = {
+    classdict = {
         "ISI": 43000,
         "ming:silicategermanatemineral": 8000,
         "ming:oxidemineral": 4000,
@@ -245,7 +245,6 @@ def preprocess_3(dataframe):
         "rksd:High_Magnesium_Fine_Grained_Igneous_Rock": 200,
         "rksd:Basic_Igneous_Rock": 200,
         "rksd:Foiditoid": 200,
-        "insuf": 200,
         "rksd:Diamicton": 200,
         "rksd:Gravel_Size_Sediment": 200,
         "rksd:Massive_Sulphide": 150,
@@ -333,13 +332,13 @@ def preprocess_3(dataframe):
     #  are acceptable.
 
 #  this is the full ~1,000,000 record selection from S. Ramdeen, with annotation updated by SMR.
-#df = pd.read_csv("trainingData/SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+df = pd.read_csv("trainingData/SESARTrainingiSamKeywords.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
 
 # this is training data extracted using preprocess_3, with an additional ~8000 annotated records
 #  selected at random from the raw data using GetTrainingData.py, and removing duplicate records,
 #  and manually deleting ~60 % of records that are very repetitive (DSDP core samples mostly).  Total of 20048
 #  samples. preprocess function selects 20000 of these (nice round number...)
-df = pd.read_csv("trainingData/SESARTraining-iSamMaterial.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
+#df = pd.read_csv("trainingData/SESARTraining-iSamMaterial.csv", usecols=['igsn', classcol, traintextcol],dtype={'igsn':str, classcol:str, traintextcol:str})
 
 df = df.fillna("")
 #remove rows that do not have a class name or training text
@@ -347,8 +346,8 @@ df = df[df[classcol]!=""]
 df = df[df[traintextcol]!=""]
 
 
-train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song. Grabs a fixed number of samples
-#train_df, dev_df, test_df = preprocess_3(df)  # use dictionary to set sample size for each class
+#train_df, dev_df, test_df = preprocess(df)  #original function from Sarah Song. Grabs a fixed number of samples
+train_df, dev_df, test_df = preprocess_3(df)  # use dictionary to set sample size for each class
 
 
 #print("train_df columns:", train_df.columns.values)
