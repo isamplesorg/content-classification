@@ -1,0 +1,151 @@
+brass
+bronze
+copper
+gold
+iron
+lead
+pewter
+plastic (material)
+brick clay
+bucchero
+faience
+porcelain
+terracotta
+terra sigilata
+fiber material
+glass
+paper
+plaster
+plaster or mortar
+rubber
+frozen water
+amber
+bone
+charcoal
+coal
+shell
+dispersed media
+hematite
+kaolin
+mica
+quartz
+mineral-borate
+mineral-carbonate or nitrate
+mineral-halide
+mineral-native element
+mineral-organic compound
+mineral-oxide
+mineral-phosphate, arsenate, or vanadate
+mineral-silicate or germanate
+mineral-sulfate, selenate, or tellurate
+mineral-sulfide or sulfosalt
+mixed soil sediment or rock
+cinder
+basalt
+flint
+cinder
+coal
+dolomite
+gabbro
+greywacke
+limestone
+marble
+obsidian
+pumice
+slate
+travertine
+aphanite
+breccia
+cataclasite series
+mylonitic rock
+breccia gouge series
+pyroclastic rock
+dacite
+alkali feldspar granite
+granite
+granodiorite
+tonalite
+quartz rich igneous rock
+rhyolitoid
+basalt
+gabbroic rock
+doleritic rock
+exotic composition igneous rock
+andesite
+basalt
+dacite
+foiditoid
+high magnesium fine grained igneous rock
+phonolitoid
+rhyolitoid
+tephritoid
+trachytoid
+pyroclastic rock
+glass rich igneous rock
+hypabyssal intrusive rock
+andesite
+dioritoid
+anorthositic rock
+aplite
+dioritoid
+foid dioritoid
+foid gabbroid
+foid syenitoid
+foidolite
+gabbroic rock
+monzogabbroic rock
+alkali feldspar granite
+granite
+granodiorite
+tonalite
+hornblendite
+pegmatite
+peridotite
+pyroxenite
+quartz rich igneous rock
+syenitoid
+plutonic igneous rock
+porphyry
+ultrabasic igneous rock
+hornblendite
+peridotite
+pyroxenite
+impact generated material
+massive sulphide
+metamorphic rock
+metasomatic rock
+carbonate sedimentary rock
+diamictite
+generic conglomerate
+generic mudstone
+generic sandstone
+hybrid sedimentary rock
+iron rich sedimentary rock
+non clastic siliceous sedimentary rock
+coal
+phosphorite
+tuffite
+residual material
+biogenic sediment
+carbonate sediment
+chemical sedimentary material
+diamicton
+gravel size sediment
+hybrid sediment
+iron rich sediment
+mud size sediment
+non clastic siliceous sediment
+phosphate rich sediment
+sand size sediment
+tephra
+soil
+gaseous material
+liquid water
+non-aqueous liquid material
+plastic (material)
+organic animal material
+hair
+leather
+wood
+plant fiber
+wood
