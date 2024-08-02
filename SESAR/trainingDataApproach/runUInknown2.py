@@ -1,11 +1,9 @@
 import os
-import pickle
-import torch
-import torch.nn as nn
-from transformers import BertTokenizer, BertForSequenceClassification
-from torch.utils.data import Dataset
+
 import pandas as pd
-from sklearn import preprocessing
+import torch
+from torch.utils.data import Dataset
+from transformers import BertTokenizer, BertForSequenceClassification
 
 #global variables
 classcol = "iSampleMaterial"  # classcol is the target class that should be inferred fromtext in traintextcol
